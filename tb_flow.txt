@@ -1,0 +1,16 @@
+0. Tiền xử lí:
+Load packet vào và bóc tách địa chỉ dx, dy và axon, sau đó chuyển vị trí axon tương ứng lên 1
+Chú ý, data đc load vào dưới dạng MSB trc, MSB with low address
+1. init param
+- load lần lượt vào từ địa chỉ PARAM_BASE = 80020000
+- đọc lần lượt 32bit từ bit MSB, mỗi địa chỉ ứng vs 32bit, bắt đầu từ address 0->B
+- lưu lần lượt từ sram[0]->sram[11]
+- sau khi load 256 param của core 0, tiếp tục với core 1 từ 80030000
+2. init input
+- tương tự với init param, INPUT_BASE = 80000000
+- load lần lượt 32bit từ MSB, từ địa chỉ 0->3, ứng với 256 input
+- tương tự vs core 1 với 80010000
+3. enable calc
+- read 2 địa chỉ 80080000 và 80090000 để enable tính toán cho 2 core
+4. read output
+- read lần lượt vs 2 địa chỉ 80060000 và 80070000 để đọc spike out
