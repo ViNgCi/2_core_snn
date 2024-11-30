@@ -31,8 +31,9 @@ module neuron_block_sv #(
     logic signed [POTENTIAL_WIDTH-1:0] calc_potential;
     logic signed [NUM_AXONS-1:0][WEIGHT_WIDTH-1:0] selected_weight;
     
-    integer i;
+
     generate
+        integer i;
         always_comb begin : blockName
             for (i = 0;i<NUM_AXONS ; i=i+1) begin
                 if (i[0] == 0) begin
@@ -46,6 +47,7 @@ module neuron_block_sv #(
     endgenerate
 
     always_comb begin : calc_poten
+        integer i;
         calc_potential = current_potential_i;
         for (i = 0;i<NUM_AXONS ; i=i+1) begin
             calc_potential += axon_calc_potential[i];

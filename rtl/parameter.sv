@@ -35,15 +35,15 @@ module parameter_sv #(
 
     logic [31:0] address;
 
-    logic [31:0] sram [3:0];
+    logic [31:0] sram [11:0];
 
     logic [367:0] current_neuron_param;
 
     always_comb begin
-        address = wbs_adr_i - PARAM_BASE;
+        address = (wbs_adr_i - PARAM_BASE)>>2;
     end
 
-    always_ff @( negedge wb_clk_i or posedge wb_rst_i) begin : param_ff
+    always_ff @( posedge wb_clk_i or posedge wb_rst_i) begin : param_ff
         if(wb_rst_i) begin
             wbs_ack_o <= 1'b0;
             wbs_dat_o <= 32'h00000000;
@@ -68,16 +68,14 @@ module parameter_sv #(
         end
     end
 
-    assign current_neuron_param = {sram[0], sram[1], sram[2], sram[3], sram[4], sram[5], sram[6], sram[7], sram[8], sram[9], sram[10], sram[11][0+:16]};
+    assign current_neuron_param = {sram[0], sram[1], sram[2], sram[3], sram[4], sram[5], sram[6], sram[7], sram[8], sram[9], sram[10], sram[11][31:16]};
     assign connections_o = current_neuron_param[367:112];
     assign current_potential_o = current_neuron_param[111-:9];
     assign reset_potential_o = current_neuron_param[102-:9];
-    assign negative_threshold_o = -signed'(current_neuron_param[93-:9]); 
-    assign positive_threshold_o = (current_neuron_param[93-:9]);
-    assign weights_0_o = current_neuron_param[84-:9];
-    assign weights_1_o = current_neuron_param[75-:9];
-    assign leak_o = current_neuron_param[48-:9];
-    assign positive_threshold_o = current_neuron_param[47-:9];
-    assign negative_threshold_o = current_neuron_param[38-:9];
-    assign reset_mode_o = current_neuron_param[37];    
+    assign weights_0_o = current_neuron_param[93-:9];
+    assign weights_1_o = current_neuron_param[84-:9];
+    assign leak_o = current_neuron_param[57-:9];
+    assign positive_threshold_o = current_neuron_param[48-:9];
+    assign negative_threshold_o = current_neuron_param[39-:9];
+    assign reset_mode_o = current_neuron_param[30];    
 endmodule
