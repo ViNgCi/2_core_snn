@@ -55,12 +55,12 @@ module omem_sv #(
                             if (wbs_sel_i[3]) sram_1[address1][31:24] <= wbs_dat_i[31:24];
                         end
                     end
-                    wbs_ack_o <= 1'b1;
-                    if(core_en_i[0])begin
-                        wbs_dat_o <= sram_0[address0];
-                    end else if (core_en_i[1]) begin
-                       wbs_dat_o <= sram_1[address1];
-                    end
+                end
+                wbs_ack_o <= 1'b1;
+                if(core_en_i[0])begin
+                    wbs_dat_o <= sram_0[address0];
+                end else if (core_en_i[1]) begin
+                   wbs_dat_o <= sram_1[address1];
                 end
             end else begin
                 wbs_ack_o <= 1'b0;
