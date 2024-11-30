@@ -21,30 +21,41 @@ module imem_sv #(
 
     logic [31:0] address0, address1;
 
-    logic [31:0] sram_0 [2:0];
-    logic [31:0] sram_1 [2:0];
+    logic [31:0] sram_0 [7:0];
+    logic [31:0] sram_1 [7:0];
 
     always_comb begin
-        address0 = wbs_adr_i - IMEM_BASE_0;
-        address1 = wbs_adr_i - IMEM_BASE_1;
+        address0 = (wbs_adr_i - IMEM_BASE_0)>>2;
+        address1 = (wbs_adr_i - IMEM_BASE_1)>>2;
+    end
+    
+    initial begin
+        sram_0[0]='0;
+        sram_0[1]='0;
+        sram_0[2]='0;
+        sram_0[3]='0;
+        sram_0[4]='0;
+        sram_0[5]='0;
+        sram_0[6]='0;
+        sram_0[7]='0;
     end
 
 
-    always_ff @( negedge wb_clk_i or posedge wb_rst_i) begin : imem_ff
+    always_ff @( posedge wb_clk_i or posedge wb_rst_i) begin : imem_ff
         if(wb_rst_i) begin
             wbs_ack_o <= 1'b0;
             wbs_dat_o <= 32'h00000000;
         end else begin
             if(wbs_cyc_i && wbs_stb_i) begin
                 if(wbs_we_i) begin
-                    if(core_en_i[0])begin
+                    if(core_en_i[0]==1)begin
                         if (address0 >= 0 && address0 < 8) begin
                             if (wbs_sel_i[0]) sram_0[address0][7:0] <= wbs_dat_i[7:0];
                             if (wbs_sel_i[1]) sram_0[address0][15:8] <= wbs_dat_i[15:8];
                             if (wbs_sel_i[2]) sram_0[address0][23:16] <= wbs_dat_i[23:16];
                             if (wbs_sel_i[3]) sram_0[address0][31:24] <= wbs_dat_i[31:24];
                         end
-                    end else if (core_en_i[1]) begin
+                    end else if (core_en_i[1]==1) begin
                         if (address1 >= 0 && address1 < 8) begin
                             if (wbs_sel_i[0]) sram_1[address1][7:0] <= wbs_dat_i[7:0];
                             if (wbs_sel_i[1]) sram_1[address1][15:8] <= wbs_dat_i[15:8];

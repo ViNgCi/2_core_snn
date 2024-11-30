@@ -1,4 +1,4 @@
-module neuron_core #(
+module neuron_core_sv #(
     parameter NUM_AXONS = 256,
     parameter LEAK_WIDTH = 9,
     parameter WEIGHT_WIDTH = 9,
@@ -12,8 +12,8 @@ module neuron_core #(
 
     parameter PARAM_BASE = 32'h80020000,
 
-    parameter OMEM_BASE_0 = 32'h80030000,
-    parameter OMEM_BASE_1 = 32'h80040000
+    parameter OMEM_BASE_0 = 32'h80040000,
+    parameter OMEM_BASE_1 = 32'h80050000
 
 ) (
     input logic wb_clk_i,             // Clock
@@ -32,10 +32,10 @@ module neuron_core #(
     logic spike_in_en;
     logic param_in_en;
     logic spike_out_en;
-    logic calc_en;
+    logic [1:0] calc_en;
 
-    logic [256:0] spike_axon [1:0];
-    logic [256:0] spike_neuron [1:0];
+    logic [255:0] spike_axon [1:0];
+    logic [255:0] spike_neuron [1:0];
     
     decoder_sv #(
         
@@ -67,20 +67,29 @@ module neuron_core #(
         .wbs_adr_i(wbs_adr_i),
         .wbs_dat_i(wbs_dat_i),
         .wbs_ack_o(wbs_ack_o),
-        .wbs_dat_o(wbs_dat_o),
+        .wbs_dat_o(),
         .core_en_i(core_en),
-        .spike_axon_0_o(spike_axon_0),
-        .spike_axon_1_o(spike_axon_1)
+        .spike_axon_0_o(spike_axon[0]),
+        .spike_axon_1_o(spike_axon[1])
     );
 
+
+generate
+    for (genvar ij_index = 0; ij_index < 512; ij_index++) begin
+        localparam int i = ij_index / 256;
+        localparam int j = ij_index % 256;
     //neuron_block
-
-    generate
-        genvar i_j;
-        for (i_j = 0; i_j<512 ; i_j=i_j+1 ) begin
-            localparam int i = i_j/256;
-            localparam int j = i_j%256;
-
+        // genvar i;
+        // genvar j;
+    //genvar ij;
+    //generate
+        //for (i = 0; i < 512 ; i = i+1 ) begin
+        // for(genvar ij=0; ij<512; ij++) begin
+        //     localparam int i = ij / 256;
+        //     localparam int j = ij % 256;
+            // localparam int i = i_j/256;
+            // localparam int j = i_j%256;
+            //for (j = 0; j < 256; j=j+1) begin
                 logic [NUM_AXONS-1:0] connections;
                 logic signed [LEAK_WIDTH-1:0] leak;
                 logic signed [WEIGHT_WIDTH-1:0] weights_0;
@@ -95,7 +104,7 @@ module neuron_core #(
             
                 parameter_sv #(
                     .NUM_RESET_MODES(2),
-                    .PARAM_BASE(PARAM_BASE + (i<<16)+j)
+                    .PARAM_BASE(PARAM_BASE + i*32'h00010000 +j*32'h00000100)
                 ) param (
                     .wb_clk_i(wb_clk_i),
                     .wb_rst_i(wb_rst_i),
@@ -106,9 +115,9 @@ module neuron_core #(
                     .wbs_adr_i(wbs_adr_i),
                     .wbs_dat_i(wbs_dat_i),
                     .wbs_ack_o(wbs_ack_o),
-                    .wbs_dat_o(wbs_dat_o),
+                    .wbs_dat_o(),
                     
-                    .enable_calc_i(calc_en),
+                    .enable_calc_i(calc_en[i]),
                     
                     .connections_o(connections),
                     .leak_o(leak),
@@ -122,13 +131,13 @@ module neuron_core #(
                 );
 
                 neuron_block_sv #(
-                    .NUM_AXONS(256),
-                    .LEAK_WIDTH(9),
-                    .WEIGHT_WIDTH(9),
-                    .THRESHOLD_WIDTH(9),
-                    .POTENTIAL_WIDTH(9),
-                    .NUM_WEIGHTS(4),
-                    .NUM_RESET_MODES(2)
+                    //.NUM_AXONS(256),
+                    //.LEAK_WIDTH(9),
+                    //.WEIGHT_WIDTH(9),
+                    //.THRESHOLD_WIDTH(9),
+                    //.POTENTIAL_WIDTH(9),
+                    //.NUM_WEIGHTS(4),
+                    //.NUM_RESET_MODES(2)
                 ) neuron_block (
                     .clk_i(wb_clk_i),
                     .rst_n_i(wb_rst_i),
@@ -145,7 +154,7 @@ module neuron_core #(
                     .write_potential_o(ext_current_potential),
                     .spike_o(spike_neuron[i][j])
                 );
-                
+            //end   
         end
         
     endgenerate
