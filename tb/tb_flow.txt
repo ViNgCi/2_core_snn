@@ -11,6 +11,6 @@ Chú ý, data đc load vào dưới dạng MSB trc, MSB with low address
 - load lần lượt 32bit từ MSB, từ địa chỉ 0->3, ứng với 256 input
 - tương tự vs core 1 với 80010000
 3. enable calc
-- read 2 địa chỉ 80080000 và 80090000 để enable tính toán cho 2 core
+- read 2 địa chỉ 80060000 và 80070000 để enable tính toán cho 2 core
 4. read output
 - read lần lượt vs 2 địa chỉ 80060000 và 80070000 để đọc spike out

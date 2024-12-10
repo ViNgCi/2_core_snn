@@ -29,22 +29,38 @@ module imem_sv #(
         address1 = (wbs_adr_i - IMEM_BASE_1)>>2;
     end
     
-    initial begin
-        sram_0[0]='0;
-        sram_0[1]='0;
-        sram_0[2]='0;
-        sram_0[3]='0;
-        sram_0[4]='0;
-        sram_0[5]='0;
-        sram_0[6]='0;
-        sram_0[7]='0;
-    end
+    // initial begin
+    //     sram_0[0]='0;
+    //     sram_0[1]='0;
+    //     sram_0[2]='0;
+    //     sram_0[3]='0;
+    //     sram_0[4]='0;
+    //     sram_0[5]='0;
+    //     sram_0[6]='0;
+    //     sram_0[7]='0;
+    // end
 
 
     always_ff @( posedge wb_clk_i or posedge wb_rst_i) begin : imem_ff
         if(wb_rst_i) begin
             wbs_ack_o <= 1'b0;
             wbs_dat_o <= 32'h00000000;
+            sram_0[0]='0;
+            sram_0[1]='0;
+            sram_0[2]='0;
+            sram_0[3]='0;
+            sram_0[4]='0;
+            sram_0[5]='0;
+            sram_0[6]='0;
+            sram_0[7]='0;
+            sram_1[0]='0;
+            sram_1[1]='0;
+            sram_1[2]='0;
+            sram_1[3]='0;
+            sram_1[4]='0;
+            sram_1[5]='0;
+            sram_1[6]='0;
+            sram_1[7]='0;
         end else begin
             if(wbs_cyc_i && wbs_stb_i) begin
                 if(wbs_we_i) begin
