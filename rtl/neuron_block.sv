@@ -54,7 +54,7 @@ module neuron_block_sv #(
         end
         calc_leak_potential = calc_potential + leak_i;
         lower_neg_threshold = (calc_leak_potential < negative_threshold_i) ? 1'b1 : 1'b0;
-        upper_pos_threshold = (calc_leak_potential >= positive_threshold_i) ? 1'b1 : 1'b0;       
+        upper_pos_threshold = (calc_leak_potential > positive_threshold_i) ? 1'b1 : 1'b0;       
         spike_o <= upper_pos_threshold;
         write_potential_o <= (upper_pos_threshold || lower_neg_threshold) ? reset_potential_i : calc_leak_potential;
     end
