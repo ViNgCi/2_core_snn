@@ -2,7 +2,7 @@
 
 module tb_neuron_core;
     parameter NUM_OUTPUT = 250; // Number of spikes
-    parameter NUM_PICTURE = 10; // Number of test images
+    parameter NUM_PICTURE = 10000; // Number of test images
     parameter NUM_PACKET = 200000; // Number of input packets in file
     
 logic clk;
@@ -75,17 +75,17 @@ task wishbone_read;
 endtask
 
 logic [7:0] num_pic [0:NUM_PICTURE - 1];
-initial $readmemh("tb_num_inputs_hex.txt", num_pic);
+initial $readmemh("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/tb_num_inputs_hex.txt", num_pic);
 
 logic [31:0] packet [0:NUM_PACKET-1];
-initial $readmemb("tb_input.txt", packet);
+initial $readmemb("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/tb_input.txt", packet);
 
 logic [367:0] param [5][256];
-initial $readmemb("csram_000.mem", param[0]);
-initial $readmemb("csram_001.mem", param[1]);
-initial $readmemb("csram_002.mem", param[2]);
-initial $readmemb("csram_003.mem", param[3]);
-initial $readmemb("csram_004.mem", param[4]);
+initial $readmemb("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/csram_000.mem", param[0]);
+initial $readmemb("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/csram_001.mem", param[1]);
+initial $readmemb("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/csram_002.mem", param[2]);
+initial $readmemb("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/csram_003.mem", param[3]);
+initial $readmemb("D:/TaiLieu/k66/20241/da2/EDABK_NeuronScience-master/EDABK_NeuronScience-master/Architecture/HWSW/converter/new_mem/csram_004.mem", param[4]);
 
 logic [255:0] spike_in[5];
 logic [255:0] spike_in_4;
@@ -160,7 +160,11 @@ initial begin
             dx = packet[count][29:21];
             dy = packet[count][20:12];
             axon_des = packet[count][11:4];
-            spike_in[dx][axon_des]=1; 
+            if(dy == '0)begin
+                spike_in[dx][axon_des]=1; 
+            end else begin
+                spike_in[3][axon_des]=1;
+            end
             count ++;
         end
     
@@ -189,8 +193,8 @@ initial begin
             //#20
             wishbone_write('0, '0);
             //#20
-            //wishbone_write(imem_base + core_idx*32'h00010000, spike_in[core_idx+idx*2][255-:32]);
-            wishbone_write(imem_base, spike_in[core_idx+idx*2][255-:32]); //-> this draft, comment this when running sti
+            wishbone_write(imem_base + core_idx*32'h00010000, spike_in[core_idx+idx*2][255-:32]);
+            //wishbone_write(imem_base, spike_in[core_idx+idx*2][255-:32]); //-> this draft, comment this when running sti
             //#40
             wishbone_write(imem_base + core_idx*32'h00010000 + 4, spike_in[core_idx+idx*2][223-:32]);
             //#20
@@ -358,12 +362,19 @@ initial begin
             label_result[i] = j;
         end
     end
+    $display("%h, %b", spike_result[i], spike_result[i]);
     $display("Result: %d", label_result[i]);
     //$display("%d %d %d %d %d %d %d %d %d %d", spike_count[0], spike_count[1], spike_count[2], spike_count[3], spike_count[4], spike_count[5], spike_count[6], spike_count[7], spike_count[8], spike_count[9]);
     end
         
         file = $fopen("tb_spike_results.txt", "w");
         if (file == 0) begin
+            $display("Lỗi: Không thể mở tệp!");
+            $finish;
+        end
+        
+        file1 = $fopen("tb_spike_results_bin.txt", "w");
+        if (file1 == 0) begin
             $display("Lỗi: Không thể mở tệp!");
             $finish;
         end
@@ -374,7 +385,8 @@ initial begin
                 //#2
                 //$display("%b", spike_result[i]); // Ghi các phần tử trên cùng một dòng
             //end
-            $fwrite(file, "%d\n", label_result[i]); // Ghi các phần tử trên cùng một dòng
+            $fwrite(file, "%8b\n", label_result[i]); // Ghi các phần tử trên cùng một dòng
+            $fwrite(file1, "%b\n", spike_result[i]);
             //#1;
             $display("Done!");
             //$display("\n"); // Xuống dòng sau mỗi hàng

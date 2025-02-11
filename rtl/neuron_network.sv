@@ -12,6 +12,8 @@ module neuron_network_sv #(
     parameter IMEM_BASE_1 = 32'h80010000,
 
     parameter PARAM_BASE = 32'h80020000,
+    parameter PARAM_JUMP = 32'h00010000,
+    //parameter PARAM_BASE_1 = 32'h80030000,
 
     parameter OMEM_BASE_0 = 32'h80040000,
     parameter OMEM_BASE_1 = 32'h80050000
@@ -35,8 +37,12 @@ module neuron_network_sv #(
     logic spike_out_en;
     logic [1:0] calc_en;
 
-    logic [255:0] spike_axon [1:0];
-    logic [255:0] spike_neuron [1:0];
+   logic [255:0] spike_axon [1:0];
+   logic [255:0] spike_neuron [1:0];
+    
+    // logic [511:0] spike_axon;
+    // logic [511:0] spike_neuron;
+    
     
     decoder_sv #(
         
@@ -69,43 +75,105 @@ module neuron_network_sv #(
         .wbs_dat_i(wbs_dat_i),
         .wbs_ack_o(),
         .wbs_dat_o(),
+        .calc_en_i(calc_en),
         .core_en_i(core_en),
         .spike_axon_0_o(spike_axon[0]),
         .spike_axon_1_o(spike_axon[1])
     );
+    generate
+        genvar i;
+        for(genvar i = 0 ; i < NUM_CORE ; i = i+ 1)begin
+            neuron_core_sv #(
+                .NUM_AXONS(NUM_AXONS),
+                .LEAK_WIDTH(LEAK_WIDTH),
+                .WEIGHT_WIDTH(WEIGHT_WIDTH),
+                .THRESHOLD_WIDTH(THRESHOLD_WIDTH),
+                .POTENTIAL_WIDTH(POTENTIAL_WIDTH),
+                .NUM_WEIGHTS(NUM_WEIGHTS),
+                .NUM_RESET_MODES(NUM_RESET_MODES),
+                .PARAM_BASE(PARAM_BASE + i*PARAM_JUMP)
+            ) neuron_core (
+                .wb_clk_i(wb_clk_i),
+                .wb_rst_i(wb_rst_i),
+                .wbs_cyc_i(wbs_cyc_i),
+                .wbs_stb_i(wbs_stb_i),
+                .wbs_we_i(wbs_we_i),
+                .wbs_sel_i(wbs_sel_i),
+                .wbs_adr_i(wbs_adr_i),
+                .wbs_dat_i(wbs_dat_i),
+                .wbs_ack_o(),
+                .wbs_dat_o(),
 
+                .calc_en_i(calc_en[i]),
+                .param_in_en_i(param_in_en),
+                .spike_axon_i(spike_axon[i]),
 
-generate
-    for(genvar i = 0 ; i < NUM_CORE ; i = i+ 1)begin
-        neuron_core_sv #(
-            .NUM_AXONS(NUM_AXONS),
-            .LEAK_WIDTH(LEAK_WIDTH),
-            .WEIGHT_WIDTH(WEIGHT_WIDTH),
-            .THRESHOLD_WIDTH(THRESHOLD_WIDTH),
-            .POTENTIAL_WIDTH(POTENTIAL_WIDTH),
-            .NUM_WEIGHTS(NUM_WEIGHTS),
-            .NUM_RESET_MODES(NUM_RESET_MODES),
-            .PARAM_BASE(PARAM_BASE + i*32'h00010000)
-        ) neuron_core (
-            .wb_clk_i(wb_clk_i),
-            .wb_rst_i(wb_rst_i),
-            .wbs_cyc_i(wbs_cyc_i),
-            .wbs_stb_i(wbs_stb_i),
-            .wbs_we_i(wbs_we_i),
-            .wbs_sel_i(wbs_sel_i),
-            .wbs_adr_i(wbs_adr_i),
-            .wbs_dat_i(wbs_dat_i),
-            .wbs_ack_o(),
-            .wbs_dat_o(),
+                .spike_neuron_o(spike_neuron[i])
+            );
+        end
+    endgenerate
 
-            .calc_en_i(calc_en[i]),
-            .param_in_en_i(param_in_en),
-            .spike_axon_i(spike_axon[i]),
+//generate
+    //genvar i;
+    //for(i = 0 ; i < NUM_CORE ; i = i+ 1)begin
+//         neuron_core_sv #(
+// //            .NUM_AXONS(NUM_AXONS),
+// //            .LEAK_WIDTH(LEAK_WIDTH),
+// //            .WEIGHT_WIDTH(WEIGHT_WIDTH),
+// //            .THRESHOLD_WIDTH(THRESHOLD_WIDTH),
+// //            .POTENTIAL_WIDTH(POTENTIAL_WIDTH),
+// //            .NUM_WEIGHTS(NUM_WEIGHTS),
+// //            .NUM_RESET_MODES(NUM_RESET_MODES),
+//             //.PARAM_BASE(PARAM_BASE)
+//             //.PARAM_BASE(PARAM_BASE_0)
+//         ) neuron_core_0 (
+//             .wb_clk_i(wb_clk_i),
+//             .wb_rst_i(wb_rst_i),
+//             .wbs_cyc_i(wbs_cyc_i),
+//             .wbs_stb_i(wbs_stb_i),
+//             .wbs_we_i(wbs_we_i),
+//             .wbs_sel_i(wbs_sel_i),
+//             .wbs_adr_i(wbs_adr_i),
+//             .wbs_dat_i(wbs_dat_i),
+//             .wbs_ack_o(),
+//             .wbs_dat_o(),
 
-            .spike_neuron_o(spike_neuron[i])
-        );
-    end
-endgenerate
+//             .calc_en_i(calc_en[0]),
+//             .param_in_en_i(param_in_en),
+//             .spike_axon_i(spike_axon[0+:255]),
+
+//             .spike_neuron_o(spike_neuron[0+:255])
+//         );
+        
+//         neuron_core_sv #(
+// //            .NUM_AXONS(NUM_AXONS),
+// //            .LEAK_WIDTH(LEAK_WIDTH),
+// //            .WEIGHT_WIDTH(WEIGHT_WIDTH),
+// //            .THRESHOLD_WIDTH(THRESHOLD_WIDTH),
+// //            .POTENTIAL_WIDTH(POTENTIAL_WIDTH),
+// //            .NUM_WEIGHTS(NUM_WEIGHTS),
+// //            .NUM_RESET_MODES(NUM_RESET_MODES),
+//             .PARAM_BASE(PARAM_BASE_1)
+//         ) neuron_core_1 (
+//             .wb_clk_i(wb_clk_i),
+//             .wb_rst_i(wb_rst_i),
+//             .wbs_cyc_i(wbs_cyc_i),
+//             .wbs_stb_i(wbs_stb_i),
+//             .wbs_we_i(wbs_we_i),
+//             .wbs_sel_i(wbs_sel_i),
+//             .wbs_adr_i(wbs_adr_i),
+//             .wbs_dat_i(wbs_dat_i),
+//             .wbs_ack_o(),
+//             .wbs_dat_o(),
+
+//             .calc_en_i(calc_en[1]),
+//             .param_in_en_i(param_in_en),
+//             .spike_axon_i(spike_axon[256+:255]),
+
+//             .spike_neuron_o(spike_neuron[256+:255])
+        // );
+    //end
+//endgenerate
 
 ///////////////////////////////////////////
 //  OLD CODE FOR GENERATE NEURON BLOCK   //

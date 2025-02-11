@@ -2,7 +2,7 @@
 
 module tb_neuron_core_new;
     parameter NUM_OUTPUT = 250; // Number of spikes
-    parameter NUM_PICTURE = 10000; // Number of test images
+    parameter NUM_PICTURE = 10; // Number of test images
     parameter NUM_PACKET = 1600000; // Number of input packets in file
     
 logic clk;
@@ -128,11 +128,11 @@ logic [31:0] un_use_data;
 //assign spike_in[4]={spike_out[3][63:0], spike_out[2][63:0], spike_out[1][63:0], spike_out[0][63:0]};
 
 initial begin
-    file1 = $fopen("tb_spike_results.txt", "w");
-        if (file1 == 0) begin
-            $display("Lỗi: Không thể mở tệp!");
-            $finish;
-        end
+    // file1 = $fopen("tb_spike_results.txt", "w");
+    //     if (file1 == 0) begin
+    //         $display("Lỗi: Không thể mở tệp!");
+    //         $finish;
+    //     end
     $display("%d %d %d %d %d %d %d %d %d %d", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
     //#25
     rst = 1'b1; // Start with reset asserted
@@ -375,9 +375,9 @@ initial begin
             if(spike_result[pic_idx][j]==1)begin
                 spike_count[j%10]++;
             end
-            $fwrite(file1, "%d", spike_result[pic_idx][j]);
+            //$fwrite(file1, "%d", spike_result[pic_idx][j]);
         end
-        $fwrite(file1, "\n");
+        //$fwrite(file1, "\n");
         max_result = spike_count[0];
         label_result[pic_idx] = 0;
         for(int j = 1 ; j<10; j++)begin
@@ -392,12 +392,12 @@ initial begin
         //$display("%d %d %d %d %d %d %d %d %d %d", spike_count[0], spike_count[1], spike_count[2], spike_count[3], spike_count[4], spike_count[5], spike_count[6], spike_count[7], spike_count[8], spike_count[9]);
     end
         
-        file = $fopen("tb_spike_results.txt", "w");
+        file = $fopen("D:/TaiLieu/k66/20241/da2/rtl_code/sv_code/result/tb_spike_results.txt", "w");
         if (file == 0) begin
             $display("Lỗi: Không thể mở tệp!");
             $finish;
         end
-        file1 = $fopen("tb_spike_results_bin.txt", "w");
+        file1 = $fopen("D:/TaiLieu/k66/20241/da2/rtl_code/sv_code/result/tb_spike_results_bin.txt", "w");
         if (file1 == 0) begin
             $display("Lỗi: Không thể mở tệp!");
             $finish;

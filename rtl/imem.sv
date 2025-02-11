@@ -14,6 +14,7 @@ module imem_sv #(
     output logic wbs_ack_o,       // Acknowledgment for data transfer
     output logic [31:0] wbs_dat_o, // Data output
 
+    input logic [1:0] calc_en_i,
     input logic [1:0] core_en_i,
     output logic [255:0] spike_axon_0_o,
     output logic [255:0] spike_axon_1_o
@@ -86,7 +87,14 @@ module imem_sv #(
             end
         end
     end
-
-    assign spike_axon_0_o = {sram_0[0], sram_0[1], sram_0[2], sram_0[3], sram_0[4], sram_0[5], sram_0[6], sram_0[7]};
-    assign spike_axon_1_o = {sram_1[0], sram_1[1], sram_1[2], sram_1[3], sram_1[4], sram_1[5], sram_1[6], sram_1[7]};    
+    always_ff @(posedge wb_clk_i ) begin : axon_ff
+        if (calc_en_i[0] == 1'b1) begin
+            spike_axon_0_o <= {sram_0[0], sram_0[1], sram_0[2], sram_0[3], sram_0[4], sram_0[5], sram_0[6], sram_0[7]};
+        end    
+        if (calc_en_i[1] == 1'b1) begin
+            spike_axon_1_o <= {sram_1[0], sram_1[1], sram_1[2], sram_1[3], sram_1[4], sram_1[5], sram_1[6], sram_1[7]};    
+        end 
+    end
+    // assign spike_axon_0_o = {sram_0[0], sram_0[1], sram_0[2], sram_0[3], sram_0[4], sram_0[5], sram_0[6], sram_0[7]};
+    // assign spike_axon_1_o = {sram_1[0], sram_1[1], sram_1[2], sram_1[3], sram_1[4], sram_1[5], sram_1[6], sram_1[7]};    
 endmodule
