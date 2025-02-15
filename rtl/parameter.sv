@@ -1,4 +1,4 @@
-module parameter_sv #(
+module parameter #(
     parameter NUM_AXONS = 256,
     parameter LEAK_WIDTH = 9,
     parameter WEIGHT_WIDTH = 9,
@@ -73,9 +73,6 @@ module parameter_sv #(
                     wbs_dat_o <= sram[address];
             end else begin
                 wbs_ack_o <= 1'b0;
-                if(enable_calc_i)begin
-                    //update potential
-                end
             end
         end
     end

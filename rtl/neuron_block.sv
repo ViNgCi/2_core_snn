@@ -1,11 +1,11 @@
-module neuron_block_sv #(
+module neuron_block #(
     parameter NUM_AXONS = 256,
     parameter LEAK_WIDTH = 9,
     parameter WEIGHT_WIDTH = 9,
     parameter THRESHOLD_WIDTH = 9,
     parameter POTENTIAL_WIDTH = 9,
     parameter NUM_WEIGHTS = 4,
-    parameter NUM_RESET_MODES = 2 
+    parameter NUM_RESET_MODES = 2
 ) (
     input logic clk_i,
     input logic rst_n_i,
@@ -24,38 +24,63 @@ module neuron_block_sv #(
     output logic spike_o
 );
 
-    logic signed [POTENTIAL_WIDTH-1:0] calc_leak_potential;
-    logic signed lower_neg_threshold;
-    logic signed upper_pos_threshold;
-    logic signed [NUM_AXONS-1:0][THRESHOLD_WIDTH-1:0] axon_calc_potential;
-    logic signed [POTENTIAL_WIDTH-1:0] calc_potential;
-    logic signed [NUM_AXONS-1:0][WEIGHT_WIDTH-1:0] selected_weight;
-    
+  logic signed [POTENTIAL_WIDTH-1:0] calc_leak_potential;
+  logic signed lower_neg_threshold;
+  logic signed upper_pos_threshold;
+  logic signed [NUM_AXONS-1:0][THRESHOLD_WIDTH-1:0] axon_calc_potential;
+  logic signed [POTENTIAL_WIDTH-1:0] calc_potential;
+  logic signed [NUM_AXONS-1:0][WEIGHT_WIDTH-1:0] selected_weight;
 
-    generate
-        integer i;
-        always_comb begin : blockName
-            for (i = 0;i<NUM_AXONS ; i=i+1) begin
-                if (i[0] == 0) begin
-                    selected_weight[i] = weights_0_i;
-                end else begin
-                    selected_weight[i] = weights_1_i;
-                end
-                axon_calc_potential[i] = (axon_in_i[i]&synapses_in_i[i]) ? selected_weight[i] : 9'b000000000;
-            end
-        end
-    endgenerate
+  always_comb begin
+    calc_potential = current_potential_i;
 
-    always_comb begin : calc_poten
-        integer i;
-        calc_potential = current_potential_i;
-        for (i = 0;i<NUM_AXONS ; i=i+1) begin
-            calc_potential += axon_calc_potential[i];
-        end
-        calc_leak_potential = calc_potential + leak_i;
-        lower_neg_threshold = (calc_leak_potential < negative_threshold_i) ? 1'b1 : 1'b0;
-        upper_pos_threshold = (calc_leak_potential > positive_threshold_i) ? 1'b1 : 1'b0;       
-        spike_o <= upper_pos_threshold;
-        write_potential_o <= (upper_pos_threshold || lower_neg_threshold) ? reset_potential_i : calc_leak_potential;
+    for (int i = 0; i < NUM_AXONS; i = i + 1) begin
+      // Select weight based on axon index
+      selected_weight = (i[0] == 0) ? weights_0_i : weights_1_i;
+
+      // Compute contribution from each axon
+      axon_calc_potential = (axon_in_i[i] & synapses_in_i[i]) ? selected_weight : '0;
+
+      // Accumulate potential from active axons
+      calc_potential += axon_calc_potential;
     end
+
+    // Apply leakage
+    calc_leak_potential = calc_potential + leak_i;
+
+    // Threshold checking
+    lower_neg_threshold = (calc_leak_potential < negative_threshold_i);
+    upper_pos_threshold = (calc_leak_potential > positive_threshold_i);
+
+    // Generate spike output
+    spike_o = upper_pos_threshold;
+
+    // Determine potential reset or update
+    write_potential_o = (upper_pos_threshold || lower_neg_threshold) ? reset_potential_i : calc_leak_potential;
+  end
+
+  //     integer i;
+  //     always_comb begin : blockName
+  //       for (i = 0; i < NUM_AXONS; i = i + 1) begin
+  //         if (i[0] == 0) begin
+  //           selected_weight[i] = weights_0_i;
+  //         end else begin
+  //           selected_weight[i] = weights_1_i;
+  //         end
+  //         axon_calc_potential[i] = (axon_in_i[i]&synapses_in_i[i]) ? selected_weight[i] : 9'b000000000;
+  //       end
+  //     end
+
+  //   always_comb begin : calc_poten
+  //     integer i;
+  //     calc_potential = current_potential_i;
+  //     for (i = 0; i < NUM_AXONS; i = i + 1) begin
+  //       calc_potential += axon_calc_potential[i];
+  //     end
+  //     calc_leak_potential = calc_potential + leak_i;
+  //     lower_neg_threshold = (calc_leak_potential < negative_threshold_i) ? 1'b1 : 1'b0;
+  //     upper_pos_threshold = (calc_leak_potential > positive_threshold_i) ? 1'b1 : 1'b0;
+  //     spike_o = upper_pos_threshold;
+  //     write_potential_o = (upper_pos_threshold || lower_neg_threshold) ? reset_potential_i : calc_leak_potential;
+  //   end
 endmodule

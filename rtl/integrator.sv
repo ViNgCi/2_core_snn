@@ -1,4 +1,4 @@
-module integrator_sv #(
+module integrator #(
     parameter NUM_AXONS = 256,
     parameter LEAK_WIDTH = 9,
     parameter WEIGHT_WIDTH = 9,

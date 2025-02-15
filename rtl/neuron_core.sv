@@ -1,4 +1,4 @@
-module neuron_core_sv #(
+module neuron_core #(
     parameter NUM_AXONS = 256,
     parameter LEAK_WIDTH = 9,
     parameter WEIGHT_WIDTH = 9,
@@ -47,7 +47,7 @@ module neuron_core_sv #(
                         
             //localparam NEURON_PARAM_BASE = PARAM_BASE + (i<<16)+j;
 
-            parameter_sv #(
+            parameter #(
                 .NUM_RESET_MODES(2),
                 .PARAM_BASE(PARAM_BASE + i*32'h00000100)
             ) param (
@@ -75,7 +75,7 @@ module neuron_core_sv #(
                 .reset_mode_o(reset_mode)
             );
 
-            neuron_block_sv #(
+            neuron_block #(
                 //.NUM_AXONS(256),
                 //.LEAK_WIDTH(9),
                 //.WEIGHT_WIDTH(9),
