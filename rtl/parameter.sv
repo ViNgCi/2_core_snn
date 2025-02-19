@@ -73,9 +73,9 @@ module parameter_sv #(
                     wbs_dat_o <= sram[address];
             end else begin
                 wbs_ack_o <= 1'b0;
-                if(enable_calc_i)begin
-                    //update potential
-                end
+                // if(enable_calc_i)begin
+                //     //update potential
+                // end
             end
         end
     end

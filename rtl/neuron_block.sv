@@ -1,3 +1,4 @@
+(* use_dsp =  "yes" *)
 module neuron_block_sv #(
     parameter NUM_AXONS = 256,
     parameter LEAK_WIDTH = 9,
@@ -9,6 +10,7 @@ module neuron_block_sv #(
 ) (
     input logic clk_i,
     input logic rst_n_i,
+    input logic enable_calc_i,
     input logic signed [LEAK_WIDTH-1:0] leak_i,
     input logic signed [WEIGHT_WIDTH-1:0] weights_0_i,
     input logic signed [WEIGHT_WIDTH-1:0] weights_1_i,
@@ -21,41 +23,59 @@ module neuron_block_sv #(
     input logic signed [NUM_AXONS-1:0] axon_in_i,
 
     output logic signed [POTENTIAL_WIDTH-1:0] write_potential_o,
+    output logic spike_valid_o,
     output logic spike_o
 );
 
     logic signed [POTENTIAL_WIDTH-1:0] calc_leak_potential;
     logic signed lower_neg_threshold;
     logic signed upper_pos_threshold;
-    logic signed [NUM_AXONS-1:0][THRESHOLD_WIDTH-1:0] axon_calc_potential;
+    logic signed [THRESHOLD_WIDTH-1:0] axon_calc_potential [NUM_AXONS];
     logic signed [POTENTIAL_WIDTH-1:0] calc_potential;
-    logic signed [NUM_AXONS-1:0][WEIGHT_WIDTH-1:0] selected_weight;
-    
+    logic signed [WEIGHT_WIDTH-1:0] selected_weight [NUM_AXONS];
+    //logic signed [WEIGHT_WIDTH-1:0] pre_selected_weight [NUM_AXONS];
+
+    logic [NUM_AXONS-1:0] enable_synapse;
 
     generate
-        integer i;
-        always_comb begin : blockName
-            for (i = 0;i<NUM_AXONS ; i=i+1) begin
-                if (i[0] == 0) begin
-                    selected_weight[i] = weights_0_i;
-                end else begin
-                    selected_weight[i] = weights_1_i;
-                end
-                axon_calc_potential[i] = (axon_in_i[i]&synapses_in_i[i]) ? selected_weight[i] : 9'b000000000;
+        genvar i;
+        for (i = 0;i<NUM_AXONS/2 ; i=i+1) begin
+            assign selected_weight[i*2] = weights_0_i;
+            assign selected_weight[i*2+1] = weights_1_i;
+        end
+        // for (i = 0;i<NUM_AXONS ; i=i+1) begin
+        //     assign enable_synapse[i] = synapses_in_i[i]&axon_in_i[i];
+        // end
+    endgenerate
+    
+    generate
+        for (i = 0; i < NUM_AXONS; i++) begin
+            always_comb begin
+                enable_synapse[i] = synapses_in_i[i]& axon_in_i[i];
+                axon_calc_potential[i] = (enable_synapse[i]) ? selected_weight[i] : '0;
             end
         end
-    endgenerate
+    endgenerate    
+    
 
-    always_comb begin : calc_poten
-        integer i;
-        calc_potential = current_potential_i;
-        for (i = 0;i<NUM_AXONS ; i=i+1) begin
-            calc_potential += axon_calc_potential[i];
-        end
-        calc_leak_potential = calc_potential + leak_i;
+    pipelined_adder_tree adder_tree_inst (
+        .clk_i(clk_i),
+        .rst_n(rst_n_i),
+        .enable_calc_i(enable_calc_i),
+        .data_i(axon_calc_potential),
+        .data_o(calc_potential),
+        .valid_o(spike_valid_o)
+    );
+
+    wire spike_check;
+
+    assign spike_check = (upper_pos_threshold || lower_neg_threshold);
+
+    always_comb begin : potential_calc
+        calc_leak_potential = calc_potential + current_potential_i + leak_i;
         lower_neg_threshold = (calc_leak_potential < negative_threshold_i) ? 1'b1 : 1'b0;
         upper_pos_threshold = (calc_leak_potential > positive_threshold_i) ? 1'b1 : 1'b0;       
-        spike_o <= upper_pos_threshold;
-        write_potential_o <= (upper_pos_threshold || lower_neg_threshold) ? reset_potential_i : calc_leak_potential;
+        spike_o = upper_pos_threshold;
+        write_potential_o =(spike_check) ? reset_potential_i : calc_leak_potential;
     end
 endmodule
