@@ -47,35 +47,27 @@ module parameter_sv #(
         if(wb_rst_i) begin
             wbs_ack_o <= 1'b0;
             wbs_dat_o <= 32'h00000000;
-            sram[0]='0;
-            sram[1]='0;
-            sram[2]='0;
-            sram[3]='0;
-            sram[4]='0;
-            sram[5]='0;
-            sram[6]='0;
-            sram[7]='0;
-            sram[8]='0;
-            sram[9]='0;
-            sram[10]='0;
-            sram[11]='0;
+            for (int i = 0; i < 12; i++) begin
+                sram[i] <= '0;
+            end
         end else begin
             if(wbs_cyc_i && wbs_stb_i) begin
                 if(wbs_we_i) begin
-                    if (address >= 0 && address < 12) begin
+                    //if (address >= 0 && address < 12) begin
                         if (wbs_sel_i[0]) sram[address][7:0] <= wbs_dat_i[7:0];
                         if (wbs_sel_i[1]) sram[address][15:8] <= wbs_dat_i[15:8];
                         if (wbs_sel_i[2]) sram[address][23:16] <= wbs_dat_i[23:16];
                         if (wbs_sel_i[3]) sram[address][31:24] <= wbs_dat_i[31:24];
-                    end
-                end
-                wbs_ack_o <= 1'b1;
+                    //end
+                end else begin
+                    wbs_ack_o <= 1'b1;
                     wbs_dat_o <= sram[address];
+                end
             end else begin
                 wbs_ack_o <= 1'b0;
-                if(enable_calc_i)begin
-                    //update potential
-                end
+                // if(enable_calc_i)begin
+                //     //update potential
+                // end
             end
         end
     end

@@ -14,6 +14,7 @@ module imem_sv #(
     output logic wbs_ack_o,       // Acknowledgment for data transfer
     output logic [31:0] wbs_dat_o, // Data output
 
+    input logic [1:0] calc_en_i,
     input logic [1:0] core_en_i,
     output logic [255:0] spike_axon_0_o,
     output logic [255:0] spike_axon_1_o
@@ -45,39 +46,44 @@ module imem_sv #(
         if(wb_rst_i) begin
             wbs_ack_o <= 1'b0;
             wbs_dat_o <= 32'h00000000;
-            sram_0[0]='0;
-            sram_0[1]='0;
-            sram_0[2]='0;
-            sram_0[3]='0;
-            sram_0[4]='0;
-            sram_0[5]='0;
-            sram_0[6]='0;
-            sram_0[7]='0;
-            sram_1[0]='0;
-            sram_1[1]='0;
-            sram_1[2]='0;
-            sram_1[3]='0;
-            sram_1[4]='0;
-            sram_1[5]='0;
-            sram_1[6]='0;
-            sram_1[7]='0;
+            for (int i = 0; i < 8; i++) begin
+                sram_0[i] <= '0;
+                sram_1[i] <= '0;
+            end
         end else begin
-            if(wbs_cyc_i && wbs_stb_i) begin
+            if(wbs_cyc_i & wbs_stb_i) begin
                 if(wbs_we_i) begin
-                    if(core_en_i[0]==1)begin
-                        if (address0 >= 0 && address0 < 8) begin
+//                    logic [31:0] address;
+//                    logic [31:0] sram_mem[7:0];  // Pointer to selected SRAM
+//                    if (core_en_i[0]) begin
+//                        address  = address0;
+//                        sram_mem = sram_0;
+//                    end else if (core_en_i[1]) begin
+//                        address  = address1;
+//                        sram_mem = sram_1;
+//                    end
+            
+//                      // Write operation
+//                    if (address < 8) begin
+//                        if (wbs_sel_i[0]) sram_mem[address][7:0] <= wbs_dat_i[7:0];
+//                        if (wbs_sel_i[1]) sram_mem[address][15:8] <= wbs_dat_i[15:8];
+//                        if (wbs_sel_i[2]) sram_mem[address][23:16] <= wbs_dat_i[23:16];
+//                        if (wbs_sel_i[3]) sram_mem[address][31:24] <= wbs_dat_i[31:24];
+//                    end
+                    if(core_en_i[0])begin
+                        //if (address0 >= 0 && address0 < 8) begin
                             if (wbs_sel_i[0]) sram_0[address0][7:0] <= wbs_dat_i[7:0];
                             if (wbs_sel_i[1]) sram_0[address0][15:8] <= wbs_dat_i[15:8];
                             if (wbs_sel_i[2]) sram_0[address0][23:16] <= wbs_dat_i[23:16];
                             if (wbs_sel_i[3]) sram_0[address0][31:24] <= wbs_dat_i[31:24];
-                        end
-                    end else if (core_en_i[1]==1) begin
-                        if (address1 >= 0 && address1 < 8) begin
+                        //end
+                    end else if (core_en_i[1]) begin
+                        //if (address1 >= 0 && address1 < 8) begin
                             if (wbs_sel_i[0]) sram_1[address1][7:0] <= wbs_dat_i[7:0];
                             if (wbs_sel_i[1]) sram_1[address1][15:8] <= wbs_dat_i[15:8];
                             if (wbs_sel_i[2]) sram_1[address1][23:16] <= wbs_dat_i[23:16];
                             if (wbs_sel_i[3]) sram_1[address1][31:24] <= wbs_dat_i[31:24];
-                        end
+                        //end
                     end
                 end
                 wbs_ack_o <= 1'b1;
@@ -86,7 +92,19 @@ module imem_sv #(
             end
         end
     end
-
+    // always_ff @(posedge wb_clk_i or posedge wb_rst_i) begin : axon_ff
+    //     if(wb_rst_i) begin
+    //         spike_axon_0_o <= '0;
+    //         spike_axon_1_o <= '0;
+    //     end else begin
+    //         if (calc_en_i[0]) begin
+    //             spike_axon_0_o <= {sram_0[0], sram_0[1], sram_0[2], sram_0[3], sram_0[4], sram_0[5], sram_0[6], sram_0[7]};
+    //         end    
+    //         if (calc_en_i[1]) begin
+    //             spike_axon_1_o <= {sram_1[0], sram_1[1], sram_1[2], sram_1[3], sram_1[4], sram_1[5], sram_1[6], sram_1[7]};    
+    //         end
+    //     end
+    // end
     assign spike_axon_0_o = {sram_0[0], sram_0[1], sram_0[2], sram_0[3], sram_0[4], sram_0[5], sram_0[6], sram_0[7]};
     assign spike_axon_1_o = {sram_1[0], sram_1[1], sram_1[2], sram_1[3], sram_1[4], sram_1[5], sram_1[6], sram_1[7]};    
 endmodule

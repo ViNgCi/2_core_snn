@@ -11,6 +11,7 @@ module neuron_core_sv #(
     parameter IMEM_BASE_1 = 32'h80010000,
 
     parameter PARAM_BASE = 32'h80020000,
+    parameter PARAM_JUMP = 32'h00000100,
 
     parameter OMEM_BASE_0 = 32'h80040000,
     parameter OMEM_BASE_1 = 32'h80050000
@@ -30,8 +31,14 @@ module neuron_core_sv #(
     input param_in_en_i,
     input [255:0] spike_axon_i,
 
+    output neuron_valid_o,
+
     output [255:0] spike_neuron_o
 );
+
+    logic [255:0] neuron_valid;
+
+    assign neuron_valid_o = |neuron_valid;
 
     generate
         for(genvar i = 0; i<256;i=i+1)begin 
@@ -49,7 +56,7 @@ module neuron_core_sv #(
 
             parameter_sv #(
                 .NUM_RESET_MODES(2),
-                .PARAM_BASE(PARAM_BASE + i*32'h00000100)
+                .PARAM_BASE(PARAM_BASE + i*PARAM_JUMP)
             ) param (
                 .wb_clk_i(wb_clk_i),
                 .wb_rst_i(wb_rst_i),
@@ -86,6 +93,7 @@ module neuron_core_sv #(
             ) neuron_block (
                 .clk_i(wb_clk_i),
                 .rst_n_i(wb_rst_i),
+                .enable_calc_i(calc_en_i),
                 .leak_i(leak),
                 .weights_0_i(weights_0),
                 .weights_1_i(weights_1),
@@ -97,6 +105,7 @@ module neuron_core_sv #(
                 .synapses_in_i(connections),
                 .axon_in_i(spike_axon_i),
                 .write_potential_o(ext_current_potential),
+                .spike_valid_o(neuron_valid),
                 .spike_o(spike_neuron_o[i])
             );
         end
