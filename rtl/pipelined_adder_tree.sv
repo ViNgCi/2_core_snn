@@ -19,8 +19,8 @@ module pipelined_adder_tree #(
   localparam CALC = 1;
   logic at_state, at_next_state;
 
-  logic signed [DATA_WIDTH-1:0] temp_result [0:NUM_AXONS-1];
-  logic signed [DATA_WIDTH-1:0] temp_input [0:NUM_AXONS-1];
+  logic signed [DATA_WIDTH-1:0] temp_result [0:NUM_AXONS/2-1];
+  logic signed [DATA_WIDTH-1:0] temp_input [0:NUM_AXONS/2-1];
 
   logic [2:0] stage_count_d;
   logic [2:0] stage_count_q;
@@ -105,21 +105,22 @@ module pipelined_adder_tree #(
   always_comb begin
     if (at_state) begin
       stage_count_d = stage_count_q + 1;
-      if (stage_count_d == STAGES_NUM - 1) begin
-        valid_o = 1'b1;
-      end else begin
-        valid_o = 1'b0;
-      end
+//      if (stage_count_d == STAGES_NUM - 1) begin
+//        valid_o = 1'b1;
+//      end else begin
+//        valid_o = 1'b0;
+//      end
       for(int input_num = 0; input_num < NUM_AXONS/2; input_num = input_num + 1) begin
         temp_input[input_num] = temp_result[input_num];
       end
     end else begin
-      valid_o = 1'b0;
+      //valid_o = 1'b0;
       stage_count_d = 3'b0;
       for(int input_num = 0; input_num < NUM_AXONS/2; input_num = input_num + 1) begin
         temp_input[input_num] = data_i[input_num];
       end
     end
+    valid_o = (stage_count_q == STAGES_NUM - 1)? '1 : '0;
     data_o = (valid_o) ? temp_result[0] : '0;
   end
 

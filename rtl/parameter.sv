@@ -47,18 +47,9 @@ module parameter_sv #(
         if(wb_rst_i) begin
             wbs_ack_o <= 1'b0;
             wbs_dat_o <= 32'h00000000;
-            sram[0]='0;
-            sram[1]='0;
-            sram[2]='0;
-            sram[3]='0;
-            sram[4]='0;
-            sram[5]='0;
-            sram[6]='0;
-            sram[7]='0;
-            sram[8]='0;
-            sram[9]='0;
-            sram[10]='0;
-            sram[11]='0;
+            for (int i = 0; i < 8; i++) begin
+                sram[i] <= '0;
+            end
         end else begin
             if(wbs_cyc_i && wbs_stb_i) begin
                 if(wbs_we_i) begin

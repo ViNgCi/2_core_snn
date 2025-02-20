@@ -40,6 +40,11 @@
     logic [255:0] spike_axon [1:0];
     logic [255:0] spike_neuron [1:0];
     logic [1:0] spike_neuron_valid;
+    logic [1:0] neuron_calc_en;
+
+    always_ff @(posedge wb_clk_i ) begin : blockName
+        neuron_calc_en <= calc_en;
+    end
     
     // logic [511:0] spike_axon;
     // logic [511:0] spike_neuron;
@@ -105,7 +110,7 @@
                 .wbs_ack_o(),
                 .wbs_dat_o(),
 
-                .calc_en_i(calc_en[i]),
+                .calc_en_i(neuron_calc_en[i]),
                 .param_in_en_i(param_in_en),
                 .spike_axon_i(spike_axon[i]),
                 .neuron_valid_o(spike_neuron_valid[i]),
