@@ -78,8 +78,8 @@ module parameter_v #(
     assign connections_o = current_neuron_param[367:112];
     assign current_potential_o = current_neuron_param[111-:9];
     assign reset_potential_o = current_neuron_param[102-:9];
-    assign weights_0_o = current_neuron_param[93-:2];
-    assign weights_1_o = current_neuron_param[84-:2];
+    assign weights_0_o = current_neuron_param[85+:2];
+    assign weights_1_o = current_neuron_param[76+:2];
     assign leak_o = current_neuron_param[57-:9];
     assign positive_threshold_o = current_neuron_param[48-:9];
     assign negative_threshold_o = current_neuron_param[39-:9];

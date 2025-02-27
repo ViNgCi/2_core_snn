@@ -34,12 +34,24 @@ module reconfig_adder_tree #(parameter N = 2, parameter NUM_INPUTS = 256, parame
     localparam STAGES = $clog2(NUM_INPUTS);
     reg [STAGES-1:0] valid_pipeline;
     
-    wire signed [N+STAGES-1:0] adder_tree [STAGES-1:0][NUM_INPUTS-1:0];
+    wire signed [N+STAGES-1:0] adder_tree [STAGES-1:0][NUM_INPUTS/2-1:0];
     //reg [STAGES:0] valid_pipeline;
 
     always @(posedge clk) begin
         valid_pipeline[0] <= enable_calc_i;
     end
+
+    // initial begin
+    //     //valid_pipeline[0] <= 1'b0;
+    //     for (genvar i = 1; i < STAGES; i = i + 1) begin
+    //         valid_pipeline[i] == 1'b0;
+    //     end
+    //     for (genvar stage = 1; stage < STAGES; stage = stage + 1) begin : adder_stages
+    //         for (i = 0; i < (NUM_INPUTS >> (stage+1)); i = i + 1) begin : adders
+    //             adder_tree[stage][i] = 0;
+    //         end
+    //     end
+    // end
     
     genvar i, stage;
     generate
@@ -50,7 +62,7 @@ module reconfig_adder_tree #(parameter N = 2, parameter NUM_INPUTS = 256, parame
                 .B(inputs[2*i+1]),
                 .enable_i(enable_calc_i),
                 //.valid_o(valid_pipeline[0]),
-                .SUM(adder_tree[0][i]),
+                .SUM(adder_tree[0][i][N:0]),
                 .clk(clk)
             );
         end
@@ -64,11 +76,11 @@ module reconfig_adder_tree #(parameter N = 2, parameter NUM_INPUTS = 256, parame
             end
             for (i = 0; i < (NUM_INPUTS >> (stage+1)); i = i + 1) begin : adders
                 ReconfigurableAdder #(N+stage) adder (
-                    .A(adder_tree[stage-1][2*i]),
-                    .B(adder_tree[stage-1][2*i+1]),
+                    .A(adder_tree[stage-1][2*i][N+stage-1:0]),
+                    .B(adder_tree[stage-1][2*i+1][N+stage-1:0]),
                     .enable_i(valid_pipeline[stage-1]),
                     //.valid_o(valid_pipeline[stage]),
-                    .SUM(adder_tree[stage][i]),
+                    .SUM(adder_tree[stage][i][N+stage:0]),
                     .clk(clk)
                 );
             end
