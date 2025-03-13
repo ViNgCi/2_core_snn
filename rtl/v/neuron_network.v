@@ -39,16 +39,7 @@
 
     wire [255:0] spike_axon [1:0];
     wire [255:0] spike_neuron [1:0];
-    wire [1:0] spike_neuron_valid;
-    //reg [1:0] neuron_calc_en;
-
-    // always @(posedge wb_clk_i ) begin : delay_calc
-    //     neuron_calc_en <= calc_en;
-    // end
-    
-    // logic [511:0] spike_axon;
-    // logic [511:0] spike_neuron;
-    
+    reg [1:0] neuron_calc_en;
     
     decoder #(
         
@@ -86,6 +77,7 @@
         .spike_axon_0_o(spike_axon[0]),
         .spike_axon_1_o(spike_axon[1])
     );
+
     generate
         genvar i;
         for(genvar i = 0 ; i < NUM_CORE ; i = i+ 1)begin
@@ -110,167 +102,12 @@
                 .wbs_ack_o(),
                 .wbs_dat_o(),
 
-                //.calc_en_i(neuron_calc_en[i]),
                 .param_in_en_i(param_in_en),
                 .spike_axon_i(spike_axon[i]),
-                //.neuron_valid_o(spike_neuron_valid[i]),
                 .spike_neuron_o(spike_neuron[i])
             );
         end
     endgenerate
-
-//generate
-    //genvar i;
-    //for(i = 0 ; i < NUM_CORE ; i = i+ 1)begin
-//         neuron_core #(
-// //            .NUM_AXONS(NUM_AXONS),
-// //            .LEAK_WIDTH(LEAK_WIDTH),
-// //            .WEIGHT_WIDTH(WEIGHT_WIDTH),
-// //            .THRESHOLD_WIDTH(THRESHOLD_WIDTH),
-// //            .POTENTIAL_WIDTH(POTENTIAL_WIDTH),
-// //            .NUM_WEIGHTS(NUM_WEIGHTS),
-// //            .NUM_RESET_MODES(NUM_RESET_MODES),
-//             //.PARAM_BASE(PARAM_BASE)
-//             //.PARAM_BASE(PARAM_BASE_0)
-//         ) neuron_core_0 (
-//             .wb_clk_i(wb_clk_i),
-//             .wb_rst_i(wb_rst_i),
-//             .wbs_cyc_i(wbs_cyc_i),
-//             .wbs_stb_i(wbs_stb_i),
-//             .wbs_we_i(wbs_we_i),
-//             .wbs_sel_i(wbs_sel_i),
-//             .wbs_adr_i(wbs_adr_i),
-//             .wbs_dat_i(wbs_dat_i),
-//             .wbs_ack_o(),
-//             .wbs_dat_o(),
-
-//             .calc_en_i(calc_en[0]),
-//             .param_in_en_i(param_in_en),
-//             .spike_axon_i(spike_axon[0+:255]),
-
-//             .spike_neuron_o(spike_neuron[0+:255])
-//         );
-        
-//         neuron_core #(
-// //            .NUM_AXONS(NUM_AXONS),
-// //            .LEAK_WIDTH(LEAK_WIDTH),
-// //            .WEIGHT_WIDTH(WEIGHT_WIDTH),
-// //            .THRESHOLD_WIDTH(THRESHOLD_WIDTH),
-// //            .POTENTIAL_WIDTH(POTENTIAL_WIDTH),
-// //            .NUM_WEIGHTS(NUM_WEIGHTS),
-// //            .NUM_RESET_MODES(NUM_RESET_MODES),
-//             .PARAM_BASE(PARAM_BASE_1)
-//         ) neuron_core_1 (
-//             .wb_clk_i(wb_clk_i),
-//             .wb_rst_i(wb_rst_i),
-//             .wbs_cyc_i(wbs_cyc_i),
-//             .wbs_stb_i(wbs_stb_i),
-//             .wbs_we_i(wbs_we_i),
-//             .wbs_sel_i(wbs_sel_i),
-//             .wbs_adr_i(wbs_adr_i),
-//             .wbs_dat_i(wbs_dat_i),
-//             .wbs_ack_o(),
-//             .wbs_dat_o(),
-
-//             .calc_en_i(calc_en[1]),
-//             .param_in_en_i(param_in_en),
-//             .spike_axon_i(spike_axon[256+:255]),
-
-//             .spike_neuron_o(spike_neuron[256+:255])
-        // );
-    //end
-//endgenerate
-
-///////////////////////////////////////////
-//  OLD CODE FOR GENERATE NEURON BLOCK   //
-///////////////////////////////////////////
-//           UNUSED CODE                 //
-///////////////////////////////////////////
-
-// generate
-//     for (genvar ij_index = 0; ij_index < 512; ij_index++) begin
-//         localparam int i = ij_index / 256;
-//         localparam int j = ij_index % 256;
-//     //neuron_block
-//         // genvar i;
-//         // genvar j;
-//     //genvar ij;
-//     //generate
-//         //for (i = 0; i < 512 ; i = i+1 ) begin
-//         // for(genvar ij=0; ij<512; ij++) begin
-//         //     localparam int i = ij / 256;
-//         //     localparam int j = ij % 256;
-//             // localparam int i = i_j/256;
-//             // localparam int j = i_j%256;
-//             //for (j = 0; j < 256; j=j+1) begin
-//                 logic [NUM_AXONS-1:0] connections;
-//                 logic signed [LEAK_WIDTH-1:0] leak;
-//                 logic signed [WEIGHT_WIDTH-1:0] weights_0;
-//                 logic signed [WEIGHT_WIDTH-1:0] weights_1;
-//                 logic signed [THRESHOLD_WIDTH-1:0] positive_threshold;
-//                 logic signed [THRESHOLD_WIDTH-1:0] negative_threshold;
-//                 logic signed [POTENTIAL_WIDTH-1:0] reset_potential;
-//                 logic signed [POTENTIAL_WIDTH-1:0] current_potential;
-//                 logic signed [$clog2(NUM_RESET_MODES)-1:0] reset_mode;
-                
-//                 //localparam NEURON_PARAM_BASE = PARAM_BASE + (i<<16)+j;
-            
-//                 parameter #(
-//                     .NUM_RESET_MODES(2),
-//                     .PARAM_BASE(PARAM_BASE + i*32'h00010000 +j*32'h00000100)
-//                 ) param (
-//                     .wb_clk_i(wb_clk_i),
-//                     .wb_rst_i(wb_rst_i),
-//                     .wbs_cyc_i(wbs_cyc_i & param_in_en),
-//                     .wbs_stb_i(wbs_stb_i & param_in_en),
-//                     .wbs_we_i(wbs_we_i & param_in_en),
-//                     .wbs_sel_i(wbs_sel_i),
-//                     .wbs_adr_i(wbs_adr_i),
-//                     .wbs_dat_i(wbs_dat_i),
-//                     .wbs_ack_o(),
-//                     .wbs_dat_o(),
-                    
-//                     .enable_calc_i(calc_en[i]),
-                    
-//                     .connections_o(connections),
-//                     .leak_o(leak),
-//                     .weights_0_o(weights_0),
-//                     .weights_1_o(weights_1),
-//                     .positive_threshold_o(positive_threshold),
-//                     .negative_threshold_o(negative_threshold),
-//                     .reset_potential_o(reset_potential),
-//                     .current_potential_o(current_potential),
-//                     .reset_mode_o(reset_mode)
-//                 );
-
-//                 neuron_block #(
-//                     //.NUM_AXONS(256),
-//                     //.LEAK_WIDTH(9),
-//                     //.WEIGHT_WIDTH(9),
-//                     //.THRESHOLD_WIDTH(9),
-//                     //.POTENTIAL_WIDTH(9),
-//                     //.NUM_WEIGHTS(4),
-//                     //.NUM_RESET_MODES(2)
-//                 ) neuron_block (
-//                     .clk_i(wb_clk_i),
-//                     .rst_n_i(wb_rst_i),
-//                     .leak_i(leak),
-//                     .weights_0_i(weights_0),
-//                     .weights_1_i(weights_1),
-//                     .positive_threshold_i(positive_threshold),
-//                     .negative_threshold_i(negative_threshold),
-//                     .reset_potential_i(reset_potential),
-//                     .current_potential_i(current_potential),
-//                     .reset_mode_i(reset_mode),
-//                     .synapses_in_i(connections),
-//                     .axon_in_i(spike_axon[i]),
-//                     .write_potential_o(ext_current_potential),
-//                     .spike_o(spike_neuron[i][j])
-//                 );
-//             //end   
-//         end
-        
-//     endgenerate
 
     /////////////////////////////
     ///////      OMEM    ////////

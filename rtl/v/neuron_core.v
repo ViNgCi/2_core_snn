@@ -85,8 +85,8 @@ module neuron_core #(
                 //.NUM_RESET_MODES(2)
             ) neuron_block (
                 .leak_i(leak),
-                // .weights_0_i(weights_0),
-                // .weights_1_i(weights_1),
+                .weights_0_i(weights_0),
+                .weights_1_i(weights_1),
                 .positive_threshold_i(positive_threshold),
                 .negative_threshold_i(negative_threshold),
                 .reset_potential_i(reset_potential),
